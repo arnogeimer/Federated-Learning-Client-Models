@@ -1,5 +1,5 @@
 # Federated-Learning-Client-Models
-## Collection of NNs training on different Datasets
+## Collection of Flower client NNs training on different Datasets
 
 clientCIFAR: CNN training on CIFAR-10
 
