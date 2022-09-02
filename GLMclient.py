@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep  2 11:53:18 2022
-
-@author: arno.geimer
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Aug  3 12:55:59 2022
-
-@author: arno.geimer
-"""
 import warnings
 import flwr as fl
 import numpy as np
