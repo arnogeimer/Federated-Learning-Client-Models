@@ -13,14 +13,18 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_poisson_deviance
 
-
 # #############################################################################
 # 1. Regular PyTorch pipeline: nn.Module, train, test, and DataLoader
 # #############################################################################
 
 warnings.filterwarnings("ignore", category=UserWarning)
+localupdates=10
 
 ### The Preprocessing
+
+df=fetch_openml(data_id=41214, as_frame=True).frame
+df["Frequency"] = df["ClaimNb"] / df["Exposure"]
+
 log_scale_transformer = make_pipeline(
     FunctionTransformer(np.log, validate=False), StandardScaler()
 )
@@ -76,12 +80,10 @@ def test(glm, testloader):
         sample_weight=sample_weights[mask],
     )
     accuracy=1337#features['ClaimNb'].sum()/np.sum(y_pred * exposure)
-    print(f"MPD:{round(mpd,7)}")
+    print(f"Local test MPD: {round(mpd,7)}")
     return mpd,accuracy
 
 def load_data():
-    df=fetch_openml(data_id=41214, as_frame=True).frame
-    df["Frequency"] = df["ClaimNb"] / df["Exposure"]
     trainset,testset=train_test_split(df,train_size=.1,test_size=.5)
     return (trainset,trainset["Frequency"],trainset["Exposure"]), (testset,testset["Frequency"],testset["Exposure"])
 
@@ -92,7 +94,7 @@ def load_data():
 glm = GLM()
 trainloader, testloader = load_data()
 # We have to train the model once to initialize model.coef_ and model.intercept_
-train(glm, trainloader, 100)
+train(glm, trainloader, 1)
 
 # Define Flower client
 class FlowerClient(fl.client.NumPyClient):
@@ -108,7 +110,7 @@ class FlowerClient(fl.client.NumPyClient):
 
     def fit(self, parameters, config):
         self.set_parameters(parameters)
-        train(glm, trainloader, epochs=1)
+        train(glm, trainloader, epochs=localupdates)
         return self.get_parameters(config),len(trainloader[0]), {}
 
     def evaluate(self, parameters, config):
@@ -127,6 +129,9 @@ print("Client shutting down")
 # Local predictor
 
 glm_local = GLM()
-train(glm_local, trainloader, 500)
-print("Local model over testset:")
+train(glm_local, trainloader, 1000)
+print("Local model over local testset:")
 test(glm_local, testloader)
+print("Local model over global testset:")
+globaltestloader=(df,df["Frequency"],df["Exposure"])
+test(glm_local, globaltestloader)
