@@ -9,6 +9,3 @@ clientMNIST_CNN: RNN training on MNIST
 
 HowTo: Run server.py  and then two instances of the respective client in two new environments
 
-### Federated GLM:
-
-run run_server.bat for 5 clients, change loop in run_server.bat for more/less clients
